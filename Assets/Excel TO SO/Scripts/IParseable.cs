@@ -1,4 +1,4 @@
-﻿namespace Scenes.Excel_TO_SO.Scripts
+﻿namespace Excel_TO_SO.Scripts
 {
     // 定义支持协变的接口，T 只能出现在输出位置（如返回值）
     public interface IParseable

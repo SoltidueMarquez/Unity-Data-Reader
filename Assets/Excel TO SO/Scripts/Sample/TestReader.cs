@@ -1,10 +1,10 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Scenes.Excel_TO_SO.Scripts
+namespace Excel_TO_SO.Scripts
 {
     [CreateAssetMenu]
-    public class TestReader : CsvReaderSoBase<TestData>
+    public class TestReader : ReaderSoBase<TestData>
     {
         
     }

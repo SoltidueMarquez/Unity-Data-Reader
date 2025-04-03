@@ -12,5 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 671641a9cbd04c249f74bff88815f5bd, type: 3}
   m_Name: New Test Reader
   m_EditorClassIdentifier: 
-  csvFile: {fileID: 0}
+  file: {fileID: 0}
   dataList: []
+  sheetIndex: 0

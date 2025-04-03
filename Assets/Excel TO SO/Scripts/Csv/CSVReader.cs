@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Scenes.Excel_TO_SO.Scripts
+namespace Excel_TO_SO.Scripts.Csv
 {
     /// <summary>
     /// 静态Csv阅读工具类
