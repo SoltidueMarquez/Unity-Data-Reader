@@ -1,0 +1,10 @@
+﻿ID,string,备注,array,布尔,枚举,向量,添加二级分类,二级变量1,二级变量2
+,,,,,,,,T,T
+id,name,,desc,icon,Type,pos,count,value1,value2
+int,string,#ignore,int[],bool,enum,Vector2,List<T>,int,string
+1,XXX,该列,12|234,TRUE,,123|23,1,2,XXX
+2,YYY,不会,2|4,FALSE,,33|23,2,4,yy
+,,导出,,,,,,65,yyy
+3,ZZZ,,1|24,TRUE,,3|23,3,21,z
+,,,,,,,,22,zzz
+,,,,,,,,44,zzz
