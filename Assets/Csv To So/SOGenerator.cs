@@ -52,10 +52,10 @@ namespace Csv_To_So
             if (string.IsNullOrEmpty(dataName)) return;
 
             // 开始转换
-            string className = dataName; // 去除后缀
+            string className = dataName.Substring(0, dataName.Length - 1); // 去除后缀
 
             // 反射创建ScriptableObject实例
-            var dataType = assembly.GetType(className);
+            var dataType = assembly.GetType(dataName);
             var dataObj = ScriptableObject.CreateInstance(dataType);
 
 
@@ -83,16 +83,15 @@ namespace Csv_To_So
 
                 if (m <= 3) continue; // 跳过前4行元数据
 
-                var classType = assembly.GetType(className);
-                var classObj = Activator.CreateInstance(classType);
-                var fiInfo = classType.GetFields();
-                
                 // 根据首列是否有值来判断存储与数据读取
                 var firstColumn = Regex.IsMatch(array[m][0], @"^\d+$"); // 正则表达式，检查当前行的第一列是否全为数字
                 if (firstColumn)
                 {
                     id = CustomCsvReader.StrToInt(array[m][0]);
                     // 先处理外层的数据，填充外层字段
+                    var classType = assembly.GetType(className);
+                    var classObj = Activator.CreateInstance(classType);
+                    var fiInfo = classType.GetFields();
                     for (var i = 0; i < fiInfo.Length; i++)
                     {
                         var strs = fiInfo[i].ToString().Split(' ');
@@ -105,11 +104,82 @@ namespace Csv_To_So
                     methodInfo.Invoke(dataObj, parameters);
                     
                     // 再处理内层的数据
-                    DealInnerData(classType, classObj, fiInfo, assembly, array, m, id, dataType, dataObj);
-                }
+                    for (int f = 0; f < fiInfo.Length; f++)
+                    {
+                        string[] strs = fiInfo[f].ToString().Split(' ');
+                        if (!strs[0].Contains("List"))  // 不存在List找下一个
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            // 存在后需要找到List的标记位
+                            int startStr = strs[0].LastIndexOf("[");
+                            int endStr = strs[0].LastIndexOf("]");
+                            string childClassName = strs[0].Substring(startStr + 1, endStr - startStr - 1);
+                            Type childClassType = assembly.GetType(childClassName);
+                            object childClassObj = Activator.CreateInstance(childClassType);
+                            FieldInfo[] childFiInfo = childClassType.GetFields();
+                            for (int j = 0; j < childFiInfo.Length; j++)
+                            {
+                                string[] childStrs = childFiInfo[j].ToString().Split(' ');
+                                string childName = childStrs[1];
+                                var index = FindArrayIndex(array, childClassName, childName);
+                                if (index == -1)
+                                {
+                                    Debug.LogWarning("数据读取异常，是关于 " + childName);
+                                    continue;
+                                }
+                                CustomCsvReader.IdentifyDataParameters(assembly, m, index, childClassObj,
+                                    childFiInfo, j, childStrs);                            
+                            }
+
+                            MethodInfo childMethodInfo = dataType.GetMethod("SecondAddList");
+                            object[] childParameters = new object[] { id, childClassObj };
+                            childMethodInfo.Invoke(dataObj, childParameters);
+                        }
+                    }                }
                 else // 不存在外层数据，只考虑内层的数据
                 {
-                    DealInnerData(classType, classObj, fiInfo, assembly, array, m, id, dataType, dataObj);
+                    var classType = assembly.GetType(className);
+                    var classObj = Activator.CreateInstance(classType);
+                    var fiInfo = classType.GetFields();
+                    for (int f = 0; f < fiInfo.Length; f++)
+                    {
+                        string[] strs = fiInfo[f].ToString().Split(' ');
+                        if (!strs[0].Contains("List")) // 不存在List找下一个
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            // 存在后需要找到List的标记位
+                            int startStr = strs[0].LastIndexOf("[");
+                            int endStr = strs[0].LastIndexOf("]");
+                            string childClassName = strs[0].Substring(startStr + 1, endStr - startStr - 1);
+                            Type childClassType = assembly.GetType(childClassName);
+                            object childClassObj = Activator.CreateInstance(childClassType);
+                            FieldInfo[] childFiInfo = childClassType.GetFields();
+                            for (int j = 0; j < childFiInfo.Length; j++)
+                            {
+                                string[] childStrs = childFiInfo[j].ToString().Split(' ');
+                                string childName = childStrs[1];
+                                var index = FindArrayIndex(array, childClassName, childName);
+                                if (index == -1)
+                                {
+                                    Debug.LogWarning("数据读取异常，是关于 " + childName);
+                                    continue;
+                                }
+
+                                CustomCsvReader.IdentifyDataParameters(assembly, m, index, childClassObj,
+                                    childFiInfo, j, childStrs);
+                            }
+
+                            MethodInfo childMethodInfo = dataType.GetMethod("SecondAddList");
+                            object[] childParameters = new object[] { id, childClassObj };
+                            childMethodInfo.Invoke(dataObj, childParameters);
+                        }
+                    }
                 }
             }
 
@@ -117,53 +187,6 @@ namespace Csv_To_So
             AssetDatabase.CreateAsset((UnityEngine.Object)dataObj, saveAssetPath + dataName + ".asset");
             AssetDatabase.Refresh();
             Debug.Log($"生成成功：{dataName}.asset");
-        }
-
-        
-        
-        /// <summary>
-        /// 处理内层的数据
-        /// </summary>
-        private static void DealInnerData(Type classType, object classObj, FieldInfo[] fiInfo, Assembly assembly,
-            string[][] array, int m, int id, Type dataType, ScriptableObject dataObj)
-        {
-            // 再做内层的数据
-            foreach (var fieldInfo in fiInfo)
-            {
-                var strings = fieldInfo.ToString().Split(' ');
-                if (!strings[0].Contains("List")) // 不存在List找下一个
-                {
-                    continue;
-                }
-                else
-                {
-                    // 存在后需要找到List的标记位
-                    var startStr = strings[0].LastIndexOf("[");
-                    var endStr = strings[0].LastIndexOf("]");
-                    var childClassName = strings[0].Substring(startStr + 1, endStr - startStr - 1);
-                    var childClassType = assembly.GetType(childClassName);
-                    var childClassObj = Activator.CreateInstance(childClassType);
-                    var childFiInfo = childClassType.GetFields();
-                    for (var j = 0; j < childFiInfo.Length; j++)
-                    {
-                        var childStrings = childFiInfo[j].ToString().Split(' ');
-                        var childName = childStrings[1];
-                        var index = FindArrayIndex(array, childClassName, childName);
-                        if (index == -1)
-                        {
-                            Debug.LogWarning("数据读取异常，是关于 " + childName);
-                            continue;
-                        }
-
-                        CustomCsvReader.IdentifyDataParameters(assembly, m, index, childClassObj,
-                            childFiInfo, j, childStrings);
-                    }
-
-                    var childMethodInfo = dataType.GetMethod("SecondAddList");
-                    var childParameters = new object[] { id, childClassObj };
-                    childMethodInfo.Invoke(dataObj, childParameters);
-                }
-            }
         }
     }
 }
