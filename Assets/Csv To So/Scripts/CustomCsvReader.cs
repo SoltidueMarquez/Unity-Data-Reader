@@ -56,7 +56,7 @@ namespace Csv_To_So
         #region 数据解析层
 
         // 定义统一的转换器委托签名
-        private delegate object FieldValueConverter(string rawValue, Assembly assembly, string[] typeMetadata);
+        private delegate object FieldValueConverter(string rawValue, Assembly assembly, string typeMetadata);
 
         // 在类中创建转换器字典
         private static readonly Dictionary<string, FieldValueConverter> s_Converters =
@@ -86,49 +86,49 @@ namespace Csv_To_So
 
         #region 基础类型处理器
         // 处理Int32类型，空值处理为0，否则转换为int
-        private static object HandleInt(string value, Assembly _, string[] __)
+        private static object HandleInt(string value, Assembly _, string __)
             => StrToInt(value);
 
         // 处理Int32数组类型
-        private static object HandleIntArray(string value, Assembly _, string[] __)
+        private static object HandleIntArray(string value, Assembly _, string __)
             => value.Split('|').Select(StrToInt).ToArray();
 
         // 处理Int64类型（长整型）空值处理为0，否则转换为long
-        private static object HandleLong(string value, Assembly _, string[] __)
+        private static object HandleLong(string value, Assembly _, string __)
             => StrToLong(value);
 
         // 处理Int64数组类型
-        private static object HandleLongArray(string value, Assembly _, string[] __)
+        private static object HandleLongArray(string value, Assembly _, string __)
             => value.Split('|').Select(StrToLong).ToArray();
 
         // 处理Single类型（单精度浮点数）
-        private static object HandleFloat(string value, Assembly _, string[] __)
+        private static object HandleFloat(string value, Assembly _, string __)
             => StrToSingleFloat(value);
 
         // 处理Single数组类型
-        private static object HandleFloatArray(string value, Assembly _, string[] __)
+        private static object HandleFloatArray(string value, Assembly _, string __)
             => value.Split('|').Select(StrToSingleFloat).ToArray();
 
         // 处理String类型（直接赋值）
-        private static object HandleString(string value, Assembly _, string[] __)
+        private static object HandleString(string value, Assembly _, string __)
             => value;
 
         // 处理String数组类型
-        private static object HandleStringArray(string value, Assembly _, string[] __)
+        private static object HandleStringArray(string value, Assembly _, string __)
             => value.Split('|').ToArray();
 
         // 处理Boolean类型（直接解析布尔值）
-        private static object HandleBoolean(string value, Assembly _, string[] __)
+        private static object HandleBoolean(string value, Assembly _, string __)
             => StrToBool(value);
 
         // 处理Boolean类型数组
-        private static object HandleBooleanArray(string value, Assembly _, string[] __)
+        private static object HandleBooleanArray(string value, Assembly _, string __)
             => value.Split('|').Select(StrToBool).ToArray();
         #endregion
 
         #region Unity类型处理器
         // Unity Vector2Int类型处理，为空默认返回(0，0，0)
-        private static object HandleVector2Int(string value, Assembly _, string[] __)
+        private static object HandleVector2Int(string value, Assembly _, string __)
         {
             if (string.IsNullOrEmpty(value)) return Vector2Int.zero;
             var parts = value.Split('|');
@@ -136,7 +136,7 @@ namespace Csv_To_So
         }
 
         // Unity Vector2类型处理
-        private static object HandleVector2(string value, Assembly _, string[] __)
+        private static object HandleVector2(string value, Assembly _, string __)
         {
             if (string.IsNullOrEmpty(value)) return Vector2.zero;
             var parts = value.Split('|');
@@ -144,7 +144,7 @@ namespace Csv_To_So
         }
 
         // Unity Vector3Int类型处理
-        private static object HandleVector3Int(string value, Assembly _, string[] __)
+        private static object HandleVector3Int(string value, Assembly _, string __)
         {
             if (string.IsNullOrEmpty(value)) return Vector3Int.zero;
             var parts = value.Split('|');
@@ -152,7 +152,7 @@ namespace Csv_To_So
         }
 
         // Unity Vector3Int类型处理
-        private static object HandleVector3(string value, Assembly _, string[] __)
+        private static object HandleVector3(string value, Assembly _, string __)
         {
             if (string.IsNullOrEmpty(value)) return Vector3.zero;
             var parts = value.Split('|');
@@ -161,11 +161,11 @@ namespace Csv_To_So
         #endregion
 
         #region 枚举
-        private static object HandleEnum(string value, Assembly assembly, string[] typeMetadata)
+        private static object HandleEnum(string value, Assembly assembly, string typeMetadata)
         {
             // typeMetadata[0] 对应 array[2][n]（枚举类型名称）
             // typeMetadata[1] 对应 array[3][n]（字段类型标记）
-            var enumType = assembly.GetType(typeMetadata[0]);
+            var enumType = assembly.GetType(typeMetadata);
             return Enum.Parse(enumType, value.Replace("|", ","));
         }
         #endregion
@@ -186,8 +186,8 @@ namespace Csv_To_So
 
             // 参数校验...
             var rawValue = array[m][n];
-            var fieldTypeKey = strings[0];
-            var typeMetadata = new[] { array[2][n], array[3][n] }; // 组装元数据
+            var fieldTypeKey = strings[0];// 根据字段类型进行数据转换和赋值
+            var typeMetadata = array[2][n]; // 组装元数据
 
             // 核心转换逻辑
             if (s_Converters.TryGetValue(fieldTypeKey, out var converter))
@@ -197,13 +197,14 @@ namespace Csv_To_So
             }
             else // 处理未注册类型的备选方案
             {
+                Debug.LogError(fieldTypeKey);
                 HandleFallbackTypes(rawValue, assembly, fiInfo[fiI], classObj, typeMetadata);
             }
         }
 
         // 备用的复杂类型处理
         private static void HandleFallbackTypes(string rawValue, Assembly assembly, FieldInfo field, object target,
-            string[] typeMetadata)
+            string typeMetadata)
         {
             // 这里可以处理其他特殊逻辑或抛出明确异常
             throw new NotSupportedException($"Unsupported type: {field.FieldType}");
