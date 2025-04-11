@@ -174,15 +174,8 @@ namespace Csv_To_So
             int fiI, IReadOnlyList<string> strings)
         {
             // 非空判断
-            if (fiInfo == null)
-            {
-                throw new ArgumentNullException($"访问不到对应字段{nameof(fiInfo)}");
-            }
-
-            if (array == null)
-            {
-                throw new ArgumentNullException($"文件{nameof(array)}内容为空");
-            }
+            if (fiInfo == null) { throw new ArgumentNullException($"访问不到对应字段{nameof(fiInfo)}"); }
+            if (array == null) { throw new ArgumentNullException($"文件{nameof(array)}内容为空"); }
 
             // 参数校验...
             var rawValue = array[m][n];
@@ -197,17 +190,25 @@ namespace Csv_To_So
             }
             else // 处理未注册类型的备选方案
             {
-                Debug.LogError(fieldTypeKey);
-                HandleFallbackTypes(rawValue, assembly, fiInfo[fiI], classObj, typeMetadata);
+                if (s_Converters.TryGetValue(array[3][n], out var otherConverter))
+                {
+                    // 非基本类型，如枚举
+                    var convertedValue = otherConverter(rawValue, assembly, typeMetadata);
+                    fiInfo[fiI].SetValue(classObj, convertedValue);
+                }
+                else
+                {
+                    HandleFallbackTypes(rawValue, assembly, fiInfo[fiI], classObj, typeMetadata);
+                }
             }
         }
-
+        
         // 备用的复杂类型处理
         private static void HandleFallbackTypes(string rawValue, Assembly assembly, FieldInfo field, object target,
             string typeMetadata)
         {
             // 这里可以处理其他特殊逻辑或抛出明确异常
-            throw new NotSupportedException($"Unsupported type: {field.FieldType}");
+            Debug.LogError($"可能无法被处理的类别，如果是List<T>1请忽略{field.FieldType}");
         }
         #endregion
     }
