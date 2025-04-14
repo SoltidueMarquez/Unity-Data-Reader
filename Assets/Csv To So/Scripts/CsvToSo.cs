@@ -19,8 +19,8 @@ namespace Csv_To_So
                     Debug.LogError(" ");
                     return;
                 }
-                
-                var fileName = $"{file.csvFile.name}-{IdManager.GetUniqueID()}";
+
+                var fileName = string.IsNullOrEmpty(file.soName) ? $"{file.csvFile.name}" : $"{file.soName}";
                 
                 CustomCsvReader.ReadCsvData(file.csvFile);
                 var array = CustomCsvReader.array;
@@ -39,12 +39,12 @@ namespace Csv_To_So
         {
             public bool Equals(ReadableCsvFile x, ReadableCsvFile y)
             {
-                return Equals(x.csvFile, y.csvFile) && x.soClassName == y.soClassName;
+                return Equals(x.csvFile, y.csvFile) && x.soClassName == y.soClassName && x.soName == y.soClassName;
             }
 
             public int GetHashCode(ReadableCsvFile obj)
             {
-                return HashCode.Combine(obj.csvFile, obj.soClassName);
+                return HashCode.Combine(obj.csvFile, obj.soClassName, obj.soName);
             }
         }
 
@@ -52,5 +52,6 @@ namespace Csv_To_So
 
         public TextAsset csvFile;
         public string soClassName;
+        public string soName;
     }
 }

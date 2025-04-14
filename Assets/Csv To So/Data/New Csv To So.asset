@@ -14,5 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   saveAssetPath: Assets/Csv To So/Data/
   csvFiles:
-  - {fileID: 0}
-  - {fileID: 0}
+  - csvFile: {fileID: 4900000, guid: 3f0f74a5bf994d64c824167c7cc7e0dc, type: 3}
+    soClassName: Tests
+    soName: Test-1
+  - csvFile: {fileID: 4900000, guid: 091b05552c961ad439d40b161a26899d, type: 3}
+    soClassName: Tests
+    soName: Test-114514
