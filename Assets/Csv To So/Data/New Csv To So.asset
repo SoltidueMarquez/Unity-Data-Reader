@@ -13,4 +13,6 @@ MonoBehaviour:
   m_Name: New Csv To So
   m_EditorClassIdentifier: 
   saveAssetPath: Assets/Csv To So/Data/
-  csvFile: {fileID: 4900000, guid: 3f0f74a5bf994d64c824167c7cc7e0dc, type: 3}
+  csvFiles:
+  - {fileID: 0}
+  - {fileID: 0}

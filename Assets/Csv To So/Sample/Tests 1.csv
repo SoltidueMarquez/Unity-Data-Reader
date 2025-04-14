@@ -1,0 +1,8 @@
+﻿ID,string,array,布尔,枚举,向量,添加二级分类,二级变量1,二级变量2
+,,,,,,,T2,T2
+id,name,desc,icon,TestType,vec,count,value1,value2
+int,string,int[],bool,enum,Vector2,List<T2>,int,string
+1,XXX,12|234,TRUE,0,123|23,1,2,XXX
+2,YYY,2|4,FALSE,1,33|23,2,4,yy
+,,,,,,,65,yyy
+3,ZZZ,1|24,TRUE,0,3|23,3,21,z

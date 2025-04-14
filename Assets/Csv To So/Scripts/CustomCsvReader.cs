@@ -208,7 +208,7 @@ namespace Csv_To_So
             string typeMetadata)
         {
             // 这里可以处理其他特殊逻辑或抛出明确异常
-            Debug.LogError($"可能无法被处理的类别，如果是List<T>1请忽略{field.FieldType}");
+            Debug.LogWarning($"可能无法被处理的类别，如果是List<T>1请忽略{field.FieldType}");
         }
         #endregion
     }
