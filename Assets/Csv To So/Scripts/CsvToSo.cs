@@ -16,7 +16,7 @@ namespace Csv_To_So
             {
                 if (file.Equals(null) || !file.csvFile || string.IsNullOrEmpty(file.soClassName))
                 {
-                    Debug.LogError(" ");
+                    Debug.LogError("SO类与文件不能为空");
                     return;
                 }
 
